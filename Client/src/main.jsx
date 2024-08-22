@@ -26,6 +26,7 @@ import { SuratMasukPage } from "./pages/Services/DataInformasi/SuratMasukPage";
 import { SuratKeluarPage } from "./pages/Services/DataInformasi/SuratKeluarPage";
 
 import axios from 'axios';
+import {jwtDecode} from 'jwt-decode';
 
 axios.interceptors.request.use(function (config) {
   const token = localStorage.getItem('token');
@@ -35,11 +36,16 @@ axios.interceptors.request.use(function (config) {
 
 import { Navigate } from 'react-router-dom';
 
-const ProtectedRoute = ({ children }) => {
+const ProtectedRoute = ({ children, requiredRole }) => {
   const token = localStorage.getItem('token');
   if (!token) {
     // Redirect ke halaman login jika tidak ada token
     return <Navigate to="/login" />;
+  }
+  const decoded = jwtDecode(token);
+  console.log('Current User Role:', decoded.role); // Log role saat ini
+  if (requiredRole && decoded.role !== requiredRole) {
+    return <Navigate to="/unauthorized" />;
   }
   return children;
 };

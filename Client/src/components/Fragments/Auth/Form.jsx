@@ -3,6 +3,7 @@
 import { Button, Label, TextInput } from "flowbite-react";
 import axios from 'axios';
 import React, { useState } from 'react';
+import { jwtDecode } from 'jwt-decode';
 
 export function LoginForm() {
   const [email, setEmail] = useState('');
@@ -16,7 +17,8 @@ export function LoginForm() {
         password
       });
       localStorage.setItem('token', response.data.token);
-      console.log('JWT Token:', localStorage.getItem('token'));
+      const decoded = jwtDecode(response.data.token);
+      console.log('Role:', decoded.role); // Log role ke console
       // Redirect ke dashboard
       window.location.href = '/dashboard';
     } catch (error) {
