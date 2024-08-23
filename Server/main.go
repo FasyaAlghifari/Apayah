@@ -40,7 +40,7 @@ func main() {
 	authMiddleware := middleware.TokenAuthMiddleware()
 
 	// Route yang tidak memerlukan autentikasi
-	r.POST("/register", middleware.RoleMiddleware("admin"), controllers.Register)
+	r.POST("/register", controllers.Register)
 	r.POST("/login", controllers.Login)
 
 	// Terapkan middleware autentikasi ke semua route selanjutnya

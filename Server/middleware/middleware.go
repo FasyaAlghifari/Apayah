@@ -12,7 +12,6 @@ import (
 func TokenAuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tokenString := c.GetHeader("Authorization")
-		fmt.Println("Received token:", tokenString) // Added log
 		if tokenString == "" {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Anda tidak bisa mengakses halaman ini. Silahkan Login Terlebih Dahulu atau Anda Bisa Register Terlebih Dahulu Kepada Admin"})
 			c.Abort()
@@ -29,7 +28,9 @@ func TokenAuthMiddleware() gin.HandlerFunc {
 		})
 
 		if err != nil {
-			fmt.Println("Error parsing token:", err) // Added log
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Token tidak valid"})
+			c.Abort()
+			return
 		}
 
 		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
@@ -42,12 +43,25 @@ func TokenAuthMiddleware() gin.HandlerFunc {
 		}
 	}
 }
-
-func RoleMiddleware(requiredRole string) gin.HandlerFunc {
+func RequireRole(role string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		role, exists := c.Get("role")
-		if !exists || role != requiredRole {
-			c.JSON(http.StatusForbidden, gin.H{"error": "Akses tidak diizinkan"})
+		claims, exists := c.Get("claims")
+		if !exists {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+			c.Abort()
+			return
+		}
+
+		mapClaims, ok := claims.(jwt.MapClaims)
+		if !ok {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+			c.Abort()
+			return
+		}
+
+		userRole, ok := mapClaims["role"].(string)
+		if !ok || userRole != role {
+			c.JSON(http.StatusForbidden, gin.H{"error": "Forbidden"})
 			c.Abort()
 			return
 		}
